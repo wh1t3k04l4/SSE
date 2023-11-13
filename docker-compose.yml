@@ -1,0 +1,48 @@
+version: "3"
+
+networks:
+  wael-net:
+    driver: bridge
+
+services:
+  web:
+    build:
+      context: "."
+      dockerfile: "Dockerfile"
+    image: "webimage"
+    container_name: "webcontainer"
+    volumes:
+      - ./app:/var/www/html/
+    depends_on:
+      - db
+    networks:
+      - wael-net
+    ports:
+      - "127.0.0.1:81:80"
+
+  db:
+    image: mysql:5.7
+    container_name: dbcontainer
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wael
+    volumes:
+      - ./app/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - wael-net
+    ports:
+      - "127.0.0.1:3307:3306"
+    privileged: true
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmincontainer
+    links:
+      - db:db
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+      - wael-net
+    ports:
+      - "127.0.0.1:82:80"
